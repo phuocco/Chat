@@ -2,13 +2,13 @@ package com.example.chat;
 
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.support.annotation.NonNull;
-import android.support.design.widget.TabLayout;
-import android.support.v4.view.ViewPager;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
+import androidx.annotation.NonNull;
+import com.google.android.material.tabs.TabLayout;
+import androidx.viewpager.widget.ViewPager;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.Toolbar;
+import androidx.appcompat.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -107,6 +107,12 @@ public class MainActivity extends AppCompatActivity {
         startActivity(settingsIntent);
         finish();
     }
+    private void SendUserToFindFriendsActivity() {
+        Intent findIntent = new Intent(MainActivity.this,FindFriendsActivity.class);
+        findIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(findIntent);
+        finish();
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -129,7 +135,7 @@ public class MainActivity extends AppCompatActivity {
         }
         if(item.getItemId()==R.id.main_find_friends_option)
         {
-
+            SendUserToFindFriendsActivity();
         }
         if(item.getItemId()==R.id.main_create_group_option)
         {
