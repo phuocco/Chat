@@ -98,9 +98,11 @@ public class SettingsActivity extends AppCompatActivity {
                 loadingBar.setMessage("wait");
                 loadingBar.setCanceledOnTouchOutside(false);
                 loadingBar.show();
+
                 Uri resultUri = result.getUri();
 
-                StorageReference filePath = UserProfileImageRef.child(currentUserID + ".jpg");
+                final StorageReference filePath = UserProfileImageRef.child(currentUserID + ".jpg");
+
                 filePath.putFile(resultUri).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
@@ -108,7 +110,8 @@ public class SettingsActivity extends AppCompatActivity {
                         if (task.isSuccessful())
                         {
                             Toast.makeText(SettingsActivity.this, "profile uploaded", Toast.LENGTH_SHORT).show();
-                            final String downloadedUrl = task.getResult().getMetadata().getReference().getDownloadUrl().toString();
+                            final String downloadedUrl = filePath.getDownloadUrl().toString();
+
                             RootRef.child("Users").child(currentUserID).child("image")
                                     .setValue(downloadedUrl)
                                     .addOnCompleteListener(new OnCompleteListener<Void>() {
@@ -116,7 +119,7 @@ public class SettingsActivity extends AppCompatActivity {
                                         public void onComplete(@NonNull Task<Void> task) {
                                             if(task.isSuccessful())
                                             {
-                                                Toast.makeText(SettingsActivity.this, "image saved ", Toast.LENGTH_SHORT).show();
+                                                Toast.makeText(SettingsActivity.this, ""+downloadedUrl, Toast.LENGTH_SHORT).show();
                                                 loadingBar.dismiss();
                                             }
                                             else
