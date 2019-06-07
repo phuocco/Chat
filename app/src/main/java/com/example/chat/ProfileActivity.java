@@ -24,7 +24,7 @@ public class ProfileActivity extends AppCompatActivity {
     private String receiverUserID, senderUserID,current_state;
     private CircleImageView userProfileImage;
     private TextView userProfileName,userProfileStatus;
-    private Button SendMessageRequestButton;
+    private Button SendMessageRequestButton, DeclineMessageRequestButton;
     private DatabaseReference UserRef, ChatRequestRef;
     private FirebaseAuth mAuth;
 
@@ -38,7 +38,7 @@ public class ProfileActivity extends AppCompatActivity {
         userProfileName = (TextView)findViewById(R.id.visit_user_name);
         userProfileStatus = (TextView)findViewById(R.id.visit_user_status);
         SendMessageRequestButton =(Button)findViewById(R.id.send_message_request_button);
-
+        DeclineMessageRequestButton = (Button)findViewById(R.id.decline_message_request_button);
         UserRef = FirebaseDatabase.getInstance().getReference().child("Users");
         ChatRequestRef = FirebaseDatabase.getInstance().getReference().child("Chat Requests");
 
@@ -65,7 +65,7 @@ public class ProfileActivity extends AppCompatActivity {
                         Picasso.get().load(userImage).placeholder(R.drawable.profile_image).into(userProfileImage);
                         userProfileName.setText(userName);
                         userProfileStatus.setText(userStatus);
-                        ManageCharRequest();
+                        ManageChatRequest();
                     }
                     else
                     {
@@ -74,7 +74,7 @@ public class ProfileActivity extends AppCompatActivity {
 
                         userProfileName.setText(userName);
                         userProfileStatus.setText(userStatus);
-                        ManageCharRequest();
+                        ManageChatRequest();
 
                     }
 
@@ -88,7 +88,7 @@ public class ProfileActivity extends AppCompatActivity {
             });
     }
 
-    private void ManageCharRequest()
+    private void ManageChatRequest()
     {
         if(!senderUserID.equals(receiverUserID))
         {
@@ -103,6 +103,20 @@ public class ProfileActivity extends AppCompatActivity {
                                 {
                                     current_state = "request_sent";
                                     SendMessageRequestButton.setText("Cancel chat request");
+                                }
+                                else if (request_type.equals("received"))
+                                {
+                                    current_state = "request_received";
+                                    SendMessageRequestButton.setText("Accept Chat");
+                                    DeclineMessageRequestButton.setVisibility(View.VISIBLE);
+                                    DeclineMessageRequestButton.setEnabled(true);
+
+                                    DeclineMessageRequestButton.setOnClickListener(new View.OnClickListener() {
+                                        @Override
+                                        public void onClick(View view) {
+                                            CancelChatRequest();
+                                        }
+                                    });
                                 }
                             }
                         }
@@ -156,6 +170,8 @@ public class ProfileActivity extends AppCompatActivity {
                                                 SendMessageRequestButton.setEnabled(true);
                                                 current_state = "new";
                                                 SendMessageRequestButton.setText("Send Message");
+                                                DeclineMessageRequestButton.setVisibility(View.INVISIBLE);
+                                                DeclineMessageRequestButton.setEnabled(false);
                                             }
                                         }
                                     });
