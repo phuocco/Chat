@@ -25,7 +25,7 @@ public class ProfileActivity extends AppCompatActivity {
     private CircleImageView userProfileImage;
     private TextView userProfileName,userProfileStatus;
     private Button SendMessageRequestButton, DeclineMessageRequestButton;
-    private DatabaseReference UserRef, ChatRequestRef;
+    private DatabaseReference UserRef, ChatRequestRef, ContactsRef;
     private FirebaseAuth mAuth;
 
     @Override
@@ -41,6 +41,7 @@ public class ProfileActivity extends AppCompatActivity {
         DeclineMessageRequestButton = (Button)findViewById(R.id.decline_message_request_button);
         UserRef = FirebaseDatabase.getInstance().getReference().child("Users");
         ChatRequestRef = FirebaseDatabase.getInstance().getReference().child("Chat Requests");
+        ContactsRef = FirebaseDatabase.getInstance().getReference().child("Contacts");
 
         mAuth = FirebaseAuth.getInstance();
         senderUserID = mAuth.getCurrentUser().getUid();
@@ -119,6 +120,26 @@ public class ProfileActivity extends AppCompatActivity {
                                     });
                                 }
                             }
+                            else
+                            {
+                                ContactsRef.child(senderUserID)
+                                        .addListenerForSingleValueEvent(new ValueEventListener() {
+                                            @Override
+                                            public void onDataChange(@NonNull DataSnapshot dataSnapshot)
+                                            {
+                                                if(dataSnapshot.hasChild(receiverUserID))
+                                                {
+                                                    current_state = "friends";
+                                                    SendMessageRequestButton.setText("Remove this friend");
+                                                }
+                                            }
+
+                                            @Override
+                                            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                                            }
+                                        });
+                            }
                         }
 
                         @Override
@@ -139,7 +160,10 @@ public class ProfileActivity extends AppCompatActivity {
                     if (current_state.equals("request_sent"))
                     {
                         CancelChatRequest();
-
+                    }
+                    if (current_state.equals("request_received"))
+                    {
+                        AcceptChatRequest();
                     }
                 }
             });
@@ -148,6 +172,55 @@ public class ProfileActivity extends AppCompatActivity {
         {
             SendMessageRequestButton.setVisibility(View.INVISIBLE);
         }
+    }
+
+    private void AcceptChatRequest()
+    {
+        ContactsRef.child(senderUserID).child(receiverUserID)
+                .child("Contacts").setValue("Saved")
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isSuccessful())
+                        {
+                            ContactsRef.child(receiverUserID).child(senderUserID)
+                                    .child("Contacts").setValue("Saved")
+                                    .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<Void> task) {
+                                            if (task.isSuccessful())
+                                            {
+                                                ChatRequestRef.child(senderUserID).child(receiverUserID)
+                                                        .removeValue()
+                                                        .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                            @Override
+                                                            public void onComplete(@NonNull Task<Void> task)
+                                                            {
+                                                                if (task.isSuccessful())
+                                                                {
+                                                                    ChatRequestRef.child(receiverUserID).child(senderUserID)
+                                                                            .removeValue()
+                                                                            .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                                                @Override
+                                                                                public void onComplete(@NonNull Task<Void> task)
+                                                                                {
+                                                                                    SendMessageRequestButton.setEnabled(true);
+                                                                                    current_state = "friends";
+                                                                                    SendMessageRequestButton.setText("remove");
+
+                                                                                    DeclineMessageRequestButton.setVisibility(View.INVISIBLE);
+                                                                                    SendMessageRequestButton.setEnabled(false);
+                                                                                }
+                                                                            });
+                                                                }
+                                                            }
+                                                        });
+                                            }
+                                        }
+                                    });
+                        }
+                    }
+                });
     }
 
     private void CancelChatRequest()
