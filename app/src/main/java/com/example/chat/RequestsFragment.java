@@ -24,8 +24,6 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
 
-import org.w3c.dom.Text;
-
 import de.hdodenhof.circleimageview.CircleImageView;
 
 
@@ -35,10 +33,11 @@ import de.hdodenhof.circleimageview.CircleImageView;
 public class RequestsFragment extends Fragment {
 
     private View RequestsFragmentView;
-    private RecyclerView myRequestList;
+    private RecyclerView myRequestsList;
     private DatabaseReference ChatRequestsRef, UsersRef;
     private FirebaseAuth mAuth;
-    private String CurrentUserID;
+    private String currentUserID;
+
 
     public RequestsFragment() {
         // Required empty public constructor
@@ -49,16 +48,15 @@ public class RequestsFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View RequestsFragmentView = inflater.inflate(R.layout.fragment_requests, container, false);
-        myRequestList = (RecyclerView) RequestsFragmentView.findViewById(R.id.chat_requests_list);
-        myRequestList.setLayoutManager(new LinearLayoutManager(getContext()));
+        RequestsFragmentView = inflater.inflate(R.layout.fragment_requests, container, false);
 
-        ChatRequestsRef = FirebaseDatabase.getInstance().getReference().child("Chat Requests");
+        myRequestsList = (RecyclerView)RequestsFragmentView.findViewById(R.id.chat_requests_list);
+        myRequestsList.setLayoutManager(new LinearLayoutManager(getContext()));
         UsersRef = FirebaseDatabase.getInstance().getReference().child("Users");
-
         mAuth = FirebaseAuth.getInstance();
-        CurrentUserID = mAuth.getCurrentUser().getUid();
-        return  RequestsFragmentView;
+        ChatRequestsRef = FirebaseDatabase.getInstance().getReference().child("Chat Requests");
+        currentUserID = mAuth.getCurrentUser().getUid();
+        return RequestsFragmentView;
     }
 
     @Override
@@ -67,105 +65,99 @@ public class RequestsFragment extends Fragment {
 
         FirebaseRecyclerOptions<Contacts> options =
                 new FirebaseRecyclerOptions.Builder<Contacts>()
-                .setQuery(ChatRequestsRef.child(CurrentUserID),Contacts.class)
+                .setQuery(ChatRequestsRef.child(currentUserID),Contacts.class)
                 .build();
 
-        FirebaseRecyclerAdapter<Contacts,RequestViewHolder> adapter =
-                new FirebaseRecyclerAdapter<Contacts, RequestViewHolder>(options) {
+        FirebaseRecyclerAdapter<Contacts,RequestsViewHolder> adapter
+                = new FirebaseRecyclerAdapter<Contacts, RequestsViewHolder>(options) {
+            @Override
+            protected void onBindViewHolder(@NonNull final RequestsViewHolder holder, int i, @NonNull Contacts contacts)
+            {
+                holder.itemView.findViewById(R.id.request_accept_button).setVisibility(View.VISIBLE);
+                holder.itemView.findViewById(R.id.request_cancel_button).setVisibility(View.VISIBLE);
+
+                final String list_user_id = getRef(i).getKey();
+
+                DatabaseReference getTypeRef = getRef(i).child("request_type").getRef();
+
+                getTypeRef.addValueEventListener(new ValueEventListener() {
                     @Override
-                    protected void onBindViewHolder(@NonNull final RequestViewHolder requestViewHolder, int i, @NonNull Contacts contacts)
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot)
                     {
-                        requestViewHolder.itemView.findViewById(R.id.request_accept_button).setVisibility(View.VISIBLE);
-                        requestViewHolder.itemView.findViewById(R.id.request_cancel_button).setVisibility(View.VISIBLE);
-
-                        final String list_user_id = getRef(i).getKey();
-                        DatabaseReference getTypeRef = getRef(i).child("request_type").getRef();
-                        getTypeRef.addValueEventListener(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(@NonNull DataSnapshot dataSnapshot)
-                            {
-                                if (dataSnapshot.exists())
+                        String type = dataSnapshot.getValue().toString();
+                        if(type.equals("received"))
+                        {
+                            UsersRef.child(list_user_id).addValueEventListener(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot dataSnapshot)
                                 {
-                                    String type = dataSnapshot.getKey().toString();
-                                    if (type.equals("received"))
+                                    if(dataSnapshot.hasChild("image"))
                                     {
-                                        UsersRef.child(list_user_id).addValueEventListener(new ValueEventListener() {
-                                            @Override
-                                            public void onDataChange(@NonNull DataSnapshot dataSnapshot)
-                                            {
-                                                if (dataSnapshot.hasChild("image"))
-                                                {
-                                                    final String requestUsername =  dataSnapshot.child("name").getValue().toString();
-                                                    final String requestStatus =  dataSnapshot.child("status").getValue().toString();
-                                                  //  final String requestProfileImage =  dataSnapshot.child("image").getValue().toString();
+                                        final String requestUsername = dataSnapshot.child("name").getValue().toString();
+                                        final String requestStatus = dataSnapshot.child("status").getValue().toString();
+                                      //  final String requestProfileImage = dataSnapshot.child("image").getValue().toString();
 
-                                                    requestViewHolder.userName.setText(requestUsername);
-                                                    requestViewHolder.userStatus.setText(requestStatus);
-                                                 //   Picasso.get().load(requestProfileImage).placeholder(R.drawable.profile_image).into(requestViewHolder.profileImage);
+                                        holder.userName.setText(requestUsername);
+                                        holder.userStatus.setText(requestStatus);
+                                      //  Picasso.get().load(requestProfileImage).placeholder(R.drawable.profile_image).into(holder.profileImage);
+                                    }
+                                    else
+                                    {
 
-                                                }
-                                                else
-                                                {
-                                                    final String requestUsername =  dataSnapshot.child("name").getValue().toString();
-                                                    final String requestStatus =  dataSnapshot.child("status").getValue().toString();
+                                        final String requestUsername = dataSnapshot.child("name").getValue().toString();
+                                        final String requestStatus = dataSnapshot.child("status").getValue().toString();
 
-                                                    requestViewHolder.userName.setText(requestUsername);
-                                                    requestViewHolder.userStatus.setText(requestStatus);
+                                        holder.userName.setText(requestUsername);
+                                        holder.userStatus.setText(requestStatus);
 
-                                                }
-                                            }
-
-                                            @Override
-                                            public void onCancelled(@NonNull DatabaseError databaseError)
-                                            {
-
-                                            }
-                                        });
                                     }
                                 }
 
-                            }
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError databaseError) {
 
-                            @Override
-                            public void onCancelled(@NonNull DatabaseError databaseError)
-                            {
-
-                            }
-                        });
-
+                                }
+                            });
+                        }
                     }
 
-                    @NonNull
                     @Override
-                    public RequestViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType)
-                    {
-                        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.users_display_layout,parent,false);
-                        RequestViewHolder holder = new RequestViewHolder(view);
-                        return holder;
-                    }
-                };
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
 
-            myRequestList.setAdapter(adapter);
-            adapter.startListening();
+                    }
+                });
+
+            }
+
+            @NonNull
+            @Override
+            public RequestsViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType)
+            {
+                View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.users_display_layout,parent,false);
+                RequestsViewHolder holder = new RequestsViewHolder(view);
+                return holder;
+            }
+        };
+
+        myRequestsList.setAdapter(adapter);
+        adapter.startListening();
+
 
     }
 
-    public static  class RequestViewHolder extends RecyclerView.ViewHolder {
-
-        TextView userName,userStatus;
+    public static class RequestsViewHolder extends RecyclerView.ViewHolder
+    {
+        TextView userName, userStatus;
         CircleImageView profileImage;
-        Button AcceptButton,CancelButton;
-        public RequestViewHolder(@NonNull View itemView)
-        {
+        Button AcceptButton, CancelButton;
+
+        public RequestsViewHolder(@NonNull View itemView) {
             super(itemView);
             userName = itemView.findViewById(R.id.user_profile_name);
             userStatus = itemView.findViewById(R.id.user_status);
             profileImage = itemView.findViewById(R.id.users_profile_image);
             AcceptButton = itemView.findViewById(R.id.request_accept_button);
             CancelButton = itemView.findViewById(R.id.request_cancel_button);
-
-
         }
     }
-
 }
