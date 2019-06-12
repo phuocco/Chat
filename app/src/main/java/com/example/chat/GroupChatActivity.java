@@ -46,7 +46,8 @@ public class GroupChatActivity extends AppCompatActivity {
 
         currentGroupName = getIntent().getExtras().get("groupName").toString();
         Toast.makeText(this, ""+currentGroupName, Toast.LENGTH_SHORT).show();
-        mScrollView.fullScroll(ScrollView.FOCUS_DOWN);
+       // scroll down :null
+        // mScrollView.fullScroll(ScrollView.FOCUS_DOWN);
         mAuth=FirebaseAuth.getInstance();
         currentUserID = mAuth.getCurrentUser().getUid();
         UsersRef = FirebaseDatabase.getInstance().getReference().child("Users");
@@ -118,7 +119,6 @@ public class GroupChatActivity extends AppCompatActivity {
             String chatName = (String)((DataSnapshot)iterator.next()).getValue();
             String chatTime = (String)((DataSnapshot)iterator.next()).getValue();
             displayTextMessage.append(chatName + ": \n"+ chatMessage + "\n" + chatDate+ "   "+chatTime+ "\n\n\n");
-
             mScrollView.fullScroll(ScrollView.FOCUS_DOWN);
         }
 
