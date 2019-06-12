@@ -32,7 +32,7 @@
             android:id="@+id/input_message"
             android:layout_width="350dp"
             android:layout_height="wrap_content"
-            android:hint="type message"/>
+            android:hint="type  message"/>
 
        <ImageButton
            android:id="@+id/send_message_btn"
