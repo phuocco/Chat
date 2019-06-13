@@ -37,6 +37,7 @@ public class ChatsFragment extends Fragment {
     private DatabaseReference ChatsRef, UsersRef;
     private FirebaseAuth mAuth;
     private String currentUserID;
+    private String retImage;
 
 
 
@@ -86,7 +87,7 @@ public class ChatsFragment extends Fragment {
                      {
                          /*   if (dataSnapshot.hasChild("image"))
                         {
-                            final String retImage = dataSnapshot.child("image").getValue().toString();
+                            retImage = dataSnapshot.child("image").getValue().toString();
                             Picasso.get().load(retImage).placeholder(R.drawable.profile_image).into(holder.profileImage);
                         }*/
                          final String retName = dataSnapshot.child("name").getValue().toString();
@@ -102,6 +103,7 @@ public class ChatsFragment extends Fragment {
                                  Intent chatIntent = new Intent(getContext(), ChatActivity.class);
                                  chatIntent.putExtra("visit_user_id",usersID);
                                  chatIntent.putExtra("visit_user_name",retName);
+                                 chatIntent.putExtra("visit_image",retImage);
 
                                  startActivity(chatIntent);
 
@@ -142,8 +144,8 @@ public class ChatsFragment extends Fragment {
             super(itemView);
 
             profileImage = itemView.findViewById(R.id.users_profile_image);
-            userName = itemView.findViewById(R.id.user_status);
-            userStatus = itemView.findViewById(R.id.user_profile_name);
+            userName = itemView.findViewById(R.id.user_profile_name);
+            userStatus = itemView.findViewById(R.id.user_status);
 
 
         }
