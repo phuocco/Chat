@@ -37,7 +37,6 @@ public class ChatsFragment extends Fragment {
     private DatabaseReference ChatsRef, UsersRef;
     private FirebaseAuth mAuth;
     private String currentUserID;
-    private String retImage;
 
 
 
@@ -78,6 +77,8 @@ public class ChatsFragment extends Fragment {
             protected void onBindViewHolder(@NonNull final ChatsViewHolder holder, int i, @NonNull Contacts contacts)
             {
                 final String usersID = getRef(i).getKey();
+                final String retImage ="default_image";
+
 
                 UsersRef.child(usersID).addValueEventListener(new ValueEventListener() {
                     @Override
@@ -87,7 +88,7 @@ public class ChatsFragment extends Fragment {
                      {
                          /*   if (dataSnapshot.hasChild("image"))
                         {
-                            retImage = dataSnapshot.child("image").getValue().toString();
+                            retImage[0] = dataSnapshot.child("image").getValue().toString();
                             Picasso.get().load(retImage).placeholder(R.drawable.profile_image).into(holder.profileImage);
                         }*/
                          final String retName = dataSnapshot.child("name").getValue().toString();
