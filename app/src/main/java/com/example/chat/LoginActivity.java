@@ -17,6 +17,10 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.iid.internal.FirebaseInstanceIdInternal;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -25,6 +29,7 @@ public class LoginActivity extends AppCompatActivity {
     private Button LoginButton,PhoneLoginButton;
     private EditText UserEmail,UserPassword;
     private TextView NeedNewAccountLink,ForgetPasswordLink;
+    private DatabaseReference UsersRef;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,6 +37,7 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
 
         mAuth = FirebaseAuth.getInstance();
+        UsersRef = FirebaseDatabase.getInstance().getReference().child("Users");
 
         InitializeFields();
         NeedNewAccountLink.setOnClickListener(new View.OnClickListener() {
@@ -75,10 +81,28 @@ public class LoginActivity extends AppCompatActivity {
                     .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                         @Override
                         public void onComplete(@NonNull Task<AuthResult> task) {
-                        if(task.isSuccessful()){
-                            SendUserToMainActivity();
-                            Toast.makeText(LoginActivity.this, "Logged in", Toast.LENGTH_SHORT).show();
-                            loadingBar.dismiss();
+                        if(task.isSuccessful())
+                        {
+                            String CurrentUserID = mAuth.getCurrentUser().getUid();
+                            String devicetoken = FirebaseInstanceId.getInstance().getToken();
+
+                            UsersRef.child(CurrentUserID).child("device_token")
+                                    .setValue(devicetoken)
+                                    .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<Void> task)
+                                        {
+                                            if (task.isSuccessful())
+                                            {
+                                                SendUserToMainActivity();
+                                                Toast.makeText(LoginActivity.this, "Logged in", Toast.LENGTH_SHORT).show();
+                                                loadingBar.dismiss();
+                                            }
+                                        }
+                                    });
+
+
+
                         }
                         else {
                             String message =  task.getException().toString();
@@ -99,6 +123,7 @@ public class LoginActivity extends AppCompatActivity {
         NeedNewAccountLink = (TextView)findViewById(R.id.new_new_account_link);
         ForgetPasswordLink = (TextView)findViewById(R.id.forget_password_link);
         loadingBar = new ProgressDialog(this);
+
     }
 
 
