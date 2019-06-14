@@ -16,6 +16,8 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -113,27 +115,42 @@ public class SettingsActivity extends AppCompatActivity {
                         if (task.isSuccessful())
                         {
                             Toast.makeText(SettingsActivity.this, "profile uploaded", Toast.LENGTH_SHORT).show();
-                            final String downloadedUrl = filePath.getDownloadUrl().toString();
 
-                            RootRef.child("Users").child(currentUserID).child("image")
-                                    .setValue(downloadedUrl)
-                                    .addOnCompleteListener(new OnCompleteListener<Void>() {
-                                        @Override
-                                        public void onComplete(@NonNull Task<Void> task) {
-                                            if(task.isSuccessful())
-                                            {
-                                                Toast.makeText(SettingsActivity.this, ""+downloadedUrl, Toast.LENGTH_SHORT).show();
-                                                loadingBar.dismiss();
-                                            }
-                                            else
-                                            {
-                                                String message = task.getException().toString();
-                                                Toast.makeText(SettingsActivity.this, ""+message, Toast.LENGTH_SHORT).show();
-                                                loadingBar.dismiss();
+                        final String downloadedUrl = filePath.getDownloadUrl().toString();
 
-                                            }
-                                        }
-                                    });
+                            filePath.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                                @Override
+                                public void onSuccess(Uri uri) {
+                                    RootRef.child("Users").child(currentUserID).child("image")
+                                            .setValue(downloadedUrl)
+                                            .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                @Override
+                                                public void onComplete(@NonNull Task<Void> task) {
+                                                    if(task.isSuccessful())
+                                                    {
+                                                        Toast.makeText(SettingsActivity.this, ""+downloadedUrl, Toast.LENGTH_SHORT).show();
+                                                        loadingBar.dismiss();
+                                                    }
+                                                    else
+                                                    {
+                                                        String message = task.getException().toString();
+                                                        Toast.makeText(SettingsActivity.this, ""+message, Toast.LENGTH_SHORT).show();
+                                                        loadingBar.dismiss();
+
+                                                    }
+                                                }
+                                            });
+                                }
+                            }).addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception exception) {
+                                    Toast.makeText(SettingsActivity.this, "error", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+
+
+
+
                     }
                         else
                         {
