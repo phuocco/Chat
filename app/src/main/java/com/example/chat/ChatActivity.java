@@ -123,6 +123,7 @@ public class ChatActivity extends AppCompatActivity {
 
                         messageAdapter.notifyDataSetChanged();
 
+                        userMessagesList.scrollToPosition(userMessagesList.getAdapter().getItemCount());
                     }
 
                     @Override
